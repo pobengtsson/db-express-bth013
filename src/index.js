@@ -57,6 +57,24 @@ app.get('/user/:userid', async (req, res) => {
     }
 })
 
+// Delete user
+app.delete('/user/:userid', async (req, res) => {
+    const { userid } = req.params
+    try {
+        const conn = await pool.getConnection()
+        const result = await conn.query("DELETE FROM users WHERE id = ?", [userid])
+        conn.end()
+        if (result.affectedRows > 0) {
+            res.json({ message: "User deleted successfully" })
+        } else {
+            res.status(404).json({ message: "User not found" })
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
+
 // Start the server
 const PORT = 3000
 app.listen(PORT, () => {
