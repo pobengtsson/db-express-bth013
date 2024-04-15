@@ -23,15 +23,29 @@ const upload = multer({ storage: storage })
 // Static file serving - serving images from the uploads directory
 app.use('/images', express.static('uploads'))
 
-// Endpoint to upload an image
-app.post('/upload-image', upload.single('image'), (req, res) => {
-    if (req.file) {
-        res.status(200).json({
-            message: "Image uploaded successfully!",
-            filename: req.file.filename // Send the filename back so it can be accessed
-        })
-    } else {
-        res.status(400).send('No file uploaded.')
+// Endpoint to upload an image and link it to a user
+app.post('/user/:userid/upload-image', upload.single('image'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.')
+    }
+
+    const { userid } = req.params
+    const imagePath = `/images/${req.file.filename}`
+
+    try {
+        const conn = await pool.getConnection()
+        const result = await conn.query("UPDATE users SET profileImage = ? WHERE id = ?", [imagePath, userid])
+        conn.end()
+        if (result.affectedRows > 0) {
+            res.status(200).json({
+                message: "Image uploaded and linked to user successfully!",
+                filename: imagePath
+            })
+        } else {
+            res.status(404).json({ message: "User not found" })
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message })
     }
 })
 
@@ -113,27 +127,34 @@ app.delete('/user/:userid', async (req, res) => {
     }
 })
 
-// Patch user details
+// Patch endpoint to update user details, including profile image
 app.patch('/user/:userid', async (req, res) => {
     const { userid } = req.params
-    const { name, email } = req.body
+    const { name, email, profileImage } = req.body
+    const updates = []
+    const values = []
+
+    if (name) {
+        updates.push("name = ?")
+        values.push(name)
+    }
+    if (email) {
+        updates.push("email = ?")
+        values.push(email)
+    }
+    if (profileImage) {
+        updates.push("profileImage = ?")
+        values.push(profileImage)
+    }
+    if (values.length === 0) {
+        res.status(400).json({ message: "No valid fields provided for update" })
+        return
+    }
+
+    values.push(userid)
+
     try {
         const conn = await pool.getConnection()
-        const updates = []
-        const values = []
-        if (name) {
-            updates.push("name = ?")
-            values.push(name)
-        }
-        if (email) {
-            updates.push("email = ?")
-            values.push(email)
-        }
-        if (values.length === 0) {
-            res.status(400).json({ message: "No valid fields provided for update" })
-            return
-        }
-        values.push(userid)
         const result = await conn.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values)
         conn.end()
         if (result.affectedRows > 0) {
@@ -145,6 +166,7 @@ app.patch('/user/:userid', async (req, res) => {
         res.status(500).json({ error: err.message })
     }
 })
+
 
 
 // Start the server
