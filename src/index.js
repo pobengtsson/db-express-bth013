@@ -74,6 +74,39 @@ app.delete('/user/:userid', async (req, res) => {
     }
 })
 
+// Patch user details
+app.patch('/user/:userid', async (req, res) => {
+    const { userid } = req.params
+    const { name, email } = req.body
+    try {
+        const conn = await pool.getConnection()
+        const updates = []
+        const values = []
+        if (name) {
+            updates.push("name = ?")
+            values.push(name)
+        }
+        if (email) {
+            updates.push("email = ?")
+            values.push(email)
+        }
+        if (values.length === 0) {
+            res.status(400).json({ message: "No valid fields provided for update" })
+            return
+        }
+        values.push(userid)
+        const result = await conn.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values)
+        conn.end()
+        if (result.affectedRows > 0) {
+            res.json({ message: "User updated successfully" })
+        } else {
+            res.status(404).json({ message: "User not found" })
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 
 // Start the server
 const PORT = 3000
