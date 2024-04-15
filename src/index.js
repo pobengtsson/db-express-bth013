@@ -1,11 +1,39 @@
 import express from 'express'
 import mariadb from 'mariadb'
 import cookieParser from 'cookie-parser'
+import multer from 'multer'
 
 const app = express()
 
 app.use(express.json()) // middleware parses json for each request
 app.use(cookieParser()) // middleware to parse cookies in the request
+
+// Configure multer for image upload
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/') // Make sure this directory exists
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + '.jpg')
+    }
+})
+
+const upload = multer({ storage: storage })
+
+// Static file serving - serving images from the uploads directory
+app.use('/images', express.static('uploads'))
+
+// Endpoint to upload an image
+app.post('/upload-image', upload.single('image'), (req, res) => {
+    if (req.file) {
+        res.status(200).json({
+            message: "Image uploaded successfully!",
+            filename: req.file.filename // Send the filename back so it can be accessed
+        })
+    } else {
+        res.status(400).send('No file uploaded.')
+    }
+})
 
 
 // Set up MariaDB connection pool
