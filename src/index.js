@@ -98,7 +98,7 @@ app.get('/user/:userid', async (req, res) => {
     const { userid } = req.params
     try {
         const conn = await pool.getConnection()
-        const result = await conn.query("SELECT id, name, email FROM users WHERE id = ?", [userid])
+        const result = await conn.query("SELECT id, name, email, profileImage FROM users WHERE id = ?", [userid])
         conn.end()
         if (result.length > 0) {
             res.json(result[0])
