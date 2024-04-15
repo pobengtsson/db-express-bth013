@@ -27,6 +27,19 @@ app.post('/add-user', async (req, res) => { // notice! async
     }
 })
 
+// Search endpoint
+app.get('/search', async (req, res) => {
+    const { string } = req.query
+    try {
+        const conn = await pool.getConnection()
+        const result = await conn.query("SELECT id, name, email FROM users WHERE name LIKE CONCAT('%', ?, '%') OR email LIKE CONCAT('%', ?, '%')", [string, string])
+        conn.end()
+        res.json(result)
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+})
+
 // Start the server
 const PORT = 3000
 app.listen(PORT, () => {
