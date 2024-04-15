@@ -37,7 +37,7 @@ app.post('/user/:userid/upload-image', upload.single('image'), async (req, res) 
         const result = await conn.query("UPDATE users SET profileImage = ? WHERE id = ?", [imagePath, userid])
         conn.end()
         if (result.affectedRows > 0) {
-            res.status(200).json({
+            res.status(201).json({
                 message: "Image uploaded and linked to user successfully!",
                 filename: imagePath
             })
@@ -66,7 +66,7 @@ app.post('/add-user', async (req, res) => { // notice! async
         const conn = await pool.getConnection() // notice! await
         const result = await conn.query(sql_template, [name, email]) // again, await
         conn.end()
-        res.status(200).json({ message: "User added successfully!", userId: Number(result.insertId) })
+        res.status(201).json({ message: "User added successfully!", userId: Number(result.insertId) })
     } catch (err) {
         res.status(500).json({ message: "Error adding user", error: err.message })
     }
