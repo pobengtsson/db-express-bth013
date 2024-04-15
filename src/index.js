@@ -1,9 +1,12 @@
 import express from 'express'
 import mariadb from 'mariadb'
+import cookieParser from 'cookie-parser'
 
 const app = express()
 
 app.use(express.json()) // middleware parses json for each request
+app.use(cookieParser()) // middleware to parse cookies in the request
+
 
 // Set up MariaDB connection pool
 const pool = mariadb.createPool({
@@ -27,14 +30,22 @@ app.post('/add-user', async (req, res) => { // notice! async
     }
 })
 
-// Search endpoint
+// search endpoint with cookie tracking
 app.get('/search', async (req, res) => {
     const { string } = req.query
+
+    // Check for existing search count cookie, increment or initialize it
+    let searchCount = req.cookies.searchCount ? parseInt(req.cookies.searchCount) : 0
+    searchCount++
+
+    // Update cookie with new count
+    res.cookie('searchCount', searchCount, { maxAge: 86400000, httpOnly: true }) // Expires in 1 day
+
     try {
         const conn = await pool.getConnection()
         const result = await conn.query("SELECT id, name, email FROM users WHERE name LIKE CONCAT('%', ?, '%') OR email LIKE CONCAT('%', ?, '%')", [string, string])
         conn.end()
-        res.json(result)
+        res.json({ result: result, searchCount: searchCount })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
