@@ -22,7 +22,7 @@ For developers, follow these rules when handling passwords:
     ```bash
     read -sp "Password: " SERVER_PWD
     ```
-- DO NOT EVER paste the password into a webform (like chat-gpt, or any other form) as it will be a secret anymore.
+- DO NOT EVER paste the password into a webform (like chat-gpt, or any other form) as you have passed the secret and have no control of where it ends up, thus it will be NOT be a secret anymore.
 - DO NOT EVER put a password in a file and check it into a git repository (or anyother code repository)
   * use a secrets management solution (Like keychain on Mac or similar)
   * for automatic build pipelines, use the provided secrets management in the solution you use, e.g. Github secrets
