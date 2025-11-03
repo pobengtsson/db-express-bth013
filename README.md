@@ -3,7 +3,7 @@
 ## run database using the following command
 
 ```bash
-docker run --name my-mariadb -e MYSQL_ROOT_PASSWORD=bth013 -e MYSQL_DATABASE=demo -e MYSQL_USER=bth013 -e MYSQL_PASSWORD=foobar -p 3306:3306 -d mariadb
+docker run --name my-mariadb -e MYSQL_ROOT_PASSWORD=bth013 -e MYSQL_DATABASE=demo -e MYSQL_USER=bth013 -e MYSQL_PASSWORD=foobar -p 3306:3306 -v ./sql/:/docker-entrypoint-initdb.d/ mariadb
 ```
 ** See [more info on database](DATABASE.md)**
 

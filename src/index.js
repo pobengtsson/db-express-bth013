@@ -26,7 +26,7 @@ app.use('/images', express.static('uploads'))
 // Endpoint to upload an image and link it to a user
 app.post('/user/:userid/upload-image', upload.single('image'), async (req, res) => {
     if (!req.file) {
-        return res.status(400).send('No file uploaded.')
+        return res.status(400).send("No file uploaded. But don't worry you can try later :)")
     }
 
     const { userid } = req.params
